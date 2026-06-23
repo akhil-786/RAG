@@ -6,6 +6,10 @@ import serpapi
 from dotenv import load_dotenv
 from openai import OpenAI
 import finnhub
+from tools.weather import get_weather
+from tools.finance import get_stock_price
+from tools.search import web_search
+from tools.command import run_command
 from pathlib import Path
 # Load environment variables
 load_dotenv(Path(__file__).parent / ".env")
@@ -77,44 +81,12 @@ finnhub_client = finnhub.Client(
     api_key=os.getenv("FIN_HUB_API")
 )
 
-def get_stock_price(symbol):
-    try:
-        quote = finnhub_client.quote(symbol)
 
-        return {
-            "symbol": symbol,
-            "current_price": quote["c"],
-            "high": quote["h"],
-            "low": quote["l"],
-            "open": quote["o"],
-            "previous_close": quote["pc"]
-        }
-
-    except Exception as e:
-        return f"Finance tool failed: {str(e)}"
 
 # --- Tools Definitions ---
-def get_weather(city):
-    try:
-        url = f"https://wttr.in/{city}?format=%C+%t"
-        response = requests.get(url, timeout=10)
-        if response.status_code == 200:
-            return f"The weather in {city} is {response.text}"
-        return f"Weather API returned HTTP {response.status_code}"
-    except Exception as e:
-        return f"Weather tool failed: {str(e)}"
 
-def run_command(cmd: str):
-    # Safeguard to filter obviously dangerous shell operations
-    forbidden = ["rm -rf", "mkfs", ":(){ :|:& };:"]
-    if any(f in cmd for f in forbidden):
-        return "Error: Command rejected due to safety restrictions."
-    try:
-        import subprocess
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=15)
-        return f"STDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-    except Exception as e:
-        return f"Command execution failed: {str(e)}"
+
+
 
 def web_search(query):
     try:
